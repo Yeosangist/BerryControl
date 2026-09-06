@@ -11,6 +11,7 @@ A small GTK/X11 controller for Strawberry's MPRIS interface.
 - Persistent window position in the user config directory
 - Native Alt+drag window movement when GTK is available
 - Edit window colours and stuff via .config/berrycontrol/window.json file
+- System tray icon with a Quit option
 <br>
 
 ## Install
@@ -26,5 +27,6 @@ cp berrycontrol.desktop ~/.local/share/applications/
 <br><br>
 ## Notes
 I couldn't find any simple floating media controllers for x11 (they all seem to be designed for Wayland), so I made one.<br>
-Currently hardwired to Strawberry Music Player, because that's what I use. If you want something different, you'll need to edit the code.
+Currently hardwired to Strawberry Music Player, because that's what I use. If you want something different, you'll need to edit the code.<br><br>
+The tray requires the system `AyatanaAppIndicator3` GTK typelib (the`libayatana-appindicator` package on most Linux distributions).
 
