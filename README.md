@@ -1,4 +1,5 @@
 # BerryControl
+![GitHub Downloads (specific asset, all releases)](https://img.shields.io/github/downloads/Yeosangist/BerryControl/berrycontrol?displayAssetName=false&labelColor=%23005500&color=%23008800)
 
 A small GTK/X11 controller for Strawberry's MPRIS interface.
 
