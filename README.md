@@ -1,4 +1,4 @@
-# BerryControls
+# BerryControl
 
 A small GTK/X11 controller for Strawberry's MPRIS interface.
 
