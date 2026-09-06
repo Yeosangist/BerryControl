@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=BerryControl
+Version=1.0
+Comment=A small GTK/X11 controller for Strawberry's MPRIS interface.
+Type=Application
+Exec=python -m strawberry_controller
+Terminal=false
+Categories=Music;Audio;Utility
+StartupNotify=false
