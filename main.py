@@ -12,10 +12,12 @@ if __package__ in {None, ""}:
         sys.path.insert(0, package_root)
     from strawberry_controller.config import AppConfig, create_default_config
     from strawberry_controller.mpris import MPRISController
+    from strawberry_controller.tray import TrayIcon
     from strawberry_controller.window import ControllerWindow
 else:
     from .config import AppConfig, create_default_config
     from .mpris import MPRISController
+    from .tray import TrayIcon
     from .window import ControllerWindow
 
 
@@ -36,9 +38,9 @@ def ensure_single_instance() -> bool:
         return False
 
 
-def _install_signal_handlers() -> None:
+def _install_signal_handlers(on_shutdown) -> None:
     def handle_shutdown(*_args):
-        raise SystemExit(0)
+        on_shutdown()
 
     signal.signal(signal.SIGINT, handle_shutdown)
     signal.signal(signal.SIGTERM, handle_shutdown)
@@ -48,7 +50,6 @@ def main() -> int:
     if not ensure_single_instance():
         return 0
 
-    _install_signal_handlers()
     create_default_config()
     config = AppConfig()
     controller = MPRISController()
@@ -59,9 +60,27 @@ def main() -> int:
     except ImportError as exc:  # pragma: no cover
         raise RuntimeError("PyGObject / GTK 3 is required to run this application.") from exc
 
-    window = ControllerWindow(controller, config)
+    shutdown_started = False
+    tray = None
+
+    def shutdown() -> None:
+        nonlocal shutdown_started
+        if shutdown_started:
+            return
+        shutdown_started = True
+        if tray is not None:
+            tray.close()
+        window.close()
+        controller.close()
+        Gtk.main_quit()
+
+    _install_signal_handlers(shutdown)
+    window = ControllerWindow(controller, config, on_close=shutdown)
+    tray = TrayIcon(shutdown)
+    tray.start()
     window.show()
     Gtk.main()
+    shutdown()
     return 0
 
 

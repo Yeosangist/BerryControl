@@ -177,10 +177,23 @@ class MPRISController:
             try:
                 from gi.repository import GLib
                 GLib.source_remove(self._poll_source_id)
-                self._poll_source_id = None
                 logger.debug("Stopped polling")
             except Exception:
                 logger.exception("Failed to stop polling")
+            finally:
+                self._poll_source_id = None
+
+    def close(self) -> None:
+        """Stop updates and release the D-Bus proxies.
+
+        This method is deliberately safe to call more than once so every
+        application shutdown path can use the same cleanup operation.
+        """
+        self.stop_polling()
+        self._connected = False
+        self._properties_proxy = None
+        self._player_proxy = None
+        self._state_listeners.clear()
 
     def refresh_state(self) -> PlayerStatus:
         if self._properties_proxy is None:

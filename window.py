@@ -28,9 +28,10 @@ else:
 
 
 class ControllerWindow:
-    def __init__(self, controller, config: Optional[AppConfig] = None) -> None:
+    def __init__(self, controller, config: Optional[AppConfig] = None, on_close=None) -> None:
         self.controller = controller
         self.config = config or AppConfig()
+        self._on_close = on_close
         self._window = None
         self._title_label = None
         self._play_pause_button = None
@@ -136,7 +137,7 @@ class ControllerWindow:
 
         self._window.connect("button-press-event", self._on_button_press)
         self._window.connect("configure-event", self._on_configure)
-        self._window.connect("delete-event", Gtk.main_quit)
+        self._window.connect("delete-event", self._on_delete_event)
 
         self._apply_state(self.controller.state)
 
@@ -159,6 +160,11 @@ class ControllerWindow:
 
     def _on_next(self, _button):
         self.controller.next()
+
+    def _on_delete_event(self, *_args):
+        if self._on_close is not None:
+            self._on_close()
+        return True
 
     def _apply_state(self, state) -> None:
         if self._title_label is None:
@@ -209,6 +215,7 @@ class ControllerWindow:
     def close(self) -> None:
         if self._window is not None:
             self._window.destroy()
+            self._window = None
 
 
 try:
