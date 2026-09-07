@@ -7,13 +7,13 @@ import signal
 import sys
 
 if __package__ in {None, ""}:
-    package_root = __file__.rsplit("/strawberry_controller", 1)[0]
+    package_root = __file__.rsplit("/BerryControls", 1)[0]
     if package_root not in sys.path:
         sys.path.insert(0, package_root)
-    from strawberry_controller.config import AppConfig, create_default_config
-    from strawberry_controller.mpris import MPRISController
-    from strawberry_controller.tray import TrayIcon
-    from strawberry_controller.window import ControllerWindow
+    from BerryControls.config import AppConfig, create_default_config
+    from BerryControls.mpris import MPRISController
+    from BerryControls.tray import TrayIcon
+    from BerryControls.window import ControllerWindow
 else:
     from .config import AppConfig, create_default_config
     from .mpris import MPRISController
@@ -22,7 +22,7 @@ else:
 
 
 def ensure_single_instance() -> bool:
-    lock_path = os.path.expanduser("~/.cache/strawberry-controller.lock")
+    lock_path = os.path.expanduser("~/.cache/BerryControls.lock")
     os.makedirs(os.path.dirname(lock_path), exist_ok=True)
     try:
         lock_fd = os.open(lock_path, os.O_CREAT | os.O_RDWR)

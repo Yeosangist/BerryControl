@@ -15,7 +15,7 @@ def resource_path(relative_path: str) -> Path:
     bundle_root = getattr(sys, "_MEIPASS", None)
     if bundle_root:
         return Path(bundle_root) / relative_path
-    return Path(__file__).resolve().parent.parent / relative_path
+    return Path(__file__).resolve().parent / relative_path
 
 
 class TrayIcon:
@@ -44,7 +44,7 @@ class TrayIcon:
             raise FileNotFoundError(f"Tray icon asset not found: {icon_path}")
 
         indicator = AyatanaAppIndicator3.Indicator.new(
-            "berrycontrol",
+            "BerryControl",
             icon_path.stem,
             AyatanaAppIndicator3.IndicatorCategory.APPLICATION_STATUS,
         )

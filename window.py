@@ -22,7 +22,7 @@ if __package__ in {None, ""}:
     package_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if package_root not in sys.path:
         sys.path.insert(0, package_root)
-    from strawberry_controller.config import AppConfig
+    from BerryControls.config import AppConfig
 else:
     from .config import AppConfig
 
@@ -79,16 +79,20 @@ class ControllerWindow:
                 background-color: {self._theme.background_rgba};
                 padding: 10px 0px;
                 margin: 0;
+                border-radius: 6px;
             }}
             .title-label {{
                 color: {self._theme.text_color};
                 font: {self._font_css(self._theme.font)};
                 font-weight: 600;
+                margin-bottom: 2px;
             }}
             .control-button {{
                 min-width: 18px;
                 min-height: 18px;
                 color: {self._theme.button_color};
+                background-color: {self._theme.background_rgba};
+                border-radius: 8px;
             }}
             """
         ).encode("utf-8")
