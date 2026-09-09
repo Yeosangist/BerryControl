@@ -19,12 +19,21 @@ class ThemeSettings:
     background_rgba: str = "rgba(0, 17, 0, 0.4)"
     window_width: int = 250
     window_height: int = 50
+    show_title: bool = True
 
 
 class AppConfig:
     def __init__(self, config_path: Path | str = CONFIG_FILE) -> None:
         self.config_path = Path(config_path)
         self.config_path.parent.mkdir(parents=True, exist_ok=True)
+
+    @staticmethod
+    def _parse_bool(value, default: bool) -> bool:
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str):
+            return value.strip().lower() in {"1", "true", "yes", "on"}
+        return default
 
     def _read_data(self) -> dict:
         if not self.config_path.exists():
@@ -66,6 +75,7 @@ class AppConfig:
             background_rgba=str(data.get("background_rgba", ThemeSettings.background_rgba)),
             window_width=int(data.get("window_width", ThemeSettings.window_width)),
             window_height=int(data.get("window_height", ThemeSettings.window_height)),
+            show_title=self._parse_bool(data.get("show_title", ThemeSettings.show_title), ThemeSettings.show_title),
         )
 
     def save_theme(self, theme: ThemeSettings) -> None:
@@ -76,6 +86,7 @@ class AppConfig:
         payload["background_rgba"] = theme.background_rgba
         payload["window_width"] = theme.window_width
         payload["window_height"] = theme.window_height
+        payload["show_title"] = theme.show_title
         self._write_data(payload)
 
 

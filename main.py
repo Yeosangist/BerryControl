@@ -76,7 +76,7 @@ def main() -> int:
 
     _install_signal_handlers(shutdown)
     window = ControllerWindow(controller, config, on_close=shutdown)
-    tray = TrayIcon(shutdown)
+    tray = TrayIcon(shutdown, on_reset_size=window.reset_size, on_settings=window.open_settings)
     tray.start()
     window.show()
     Gtk.main()

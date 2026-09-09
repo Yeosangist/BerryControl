@@ -37,6 +37,7 @@ class ControllerWindow:
         self._play_pause_button = None
         self._prev_button = None
         self._next_button = None
+        self._css_provider = None
         self._theme = self.config.load_theme()
         self.controller.subscribe(self._apply_state)
         self._setup_ui()
@@ -54,12 +55,12 @@ class ControllerWindow:
             return
 
         self._window = Gtk.Window(type=Gtk.WindowType.TOPLEVEL)
-        self._window.set_title("Strawberry Controller")
+        self._window.set_title("BerryControl")
         self._window.set_decorated(False)
         self._window.set_resizable(False)
         self._window.set_keep_above(True)
         self._window.set_skip_taskbar_hint(True)
-        self._window.set_default_size(self._theme.window_width, self._theme.window_height)
+        self._window.set_default_size(*self._effective_window_size())
 
         screen = self._window.get_screen()
         if screen is not None:
@@ -69,37 +70,7 @@ class ControllerWindow:
 
         self._window.set_app_paintable(True)
         self._window.set_border_width(0)
-
-        css = (
-            f"""
-            window {{
-                background: transparent;
-            }}
-            .panel {{
-                background-color: {self._theme.background_rgba};
-                padding: 10px 0px;
-                margin: 0;
-                border-radius: 6px;
-            }}
-            .title-label {{
-                color: {self._theme.text_color};
-                font: {self._font_css(self._theme.font)};
-                font-weight: 600;
-                margin-bottom: 2px;
-            }}
-            .control-button {{
-                min-width: 18px;
-                min-height: 18px;
-                color: {self._theme.button_color};
-                background-color: {self._theme.background_rgba};
-                border-radius: 8px;
-            }}
-            """
-        ).encode("utf-8")
-        provider = Gtk.CssProvider()
-        provider.load_from_data(css)
-        context = self._window.get_style_context()
-        context.add_provider_for_screen(Gdk.Screen.get_default(), provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        self._apply_css()
 
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         box.set_border_width(0)
@@ -143,6 +114,7 @@ class ControllerWindow:
         self._window.connect("configure-event", self._on_configure)
         self._window.connect("delete-event", self._on_delete_event)
 
+        self._sync_title_visibility()
         self._apply_state(self.controller.state)
 
     def _on_button_press(self, widget, event):
@@ -170,6 +142,85 @@ class ControllerWindow:
             self._on_close()
         return True
 
+    def _apply_css(self) -> None:
+        if Gtk is None or self._window is None:
+            return
+
+        css = (
+            f"""
+            window {{
+                background: transparent;
+            }}
+            .panel {{
+                background-color: {self._theme.background_rgba};
+                padding: 10px 0px;
+                margin: 0;
+                border-radius: 6px;
+            }}
+            .title-label {{
+                color: {self._theme.text_color};
+                font: {self._font_css(self._theme.font)};
+                font-weight: 600;
+                margin-bottom: 2px;
+                padding: 0 10px;
+            }}
+            .control-button {{
+                min-width: 18px;
+                min-height: 18px;
+                color: {self._theme.button_color};
+                background-color: {self._theme.background_rgba};
+                border-radius: 8px;
+                padding: 4px;
+            }}
+            """
+        ).encode("utf-8")
+        if self._css_provider is None:
+            self._css_provider = Gtk.CssProvider()
+            context = self._window.get_style_context()
+            context.add_provider_for_screen(Gdk.Screen.get_default(), self._css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        self._css_provider.load_from_data(css)
+
+    def _effective_window_size(self) -> tuple[int, int]:
+        if self._theme.show_title:
+            return self._theme.window_width, self._theme.window_height
+        return 94, 28
+
+    def _sync_title_visibility(self) -> None:
+        if self._title_label is None:
+            return
+
+        controls = self._prev_button.get_parent() if self._prev_button is not None else None
+        if self._theme.show_title:
+            self._title_label.show()
+            if controls is not None:
+                controls.set_size_request(-1, -1)
+            if self._window is not None:
+                self._window.set_default_size(*self._effective_window_size())
+                self._window.resize(*self._effective_window_size())
+        else:
+            self._title_label.hide()
+            if controls is not None:
+                controls.set_size_request(94, 18)
+                controls.set_margin_left(5)
+                controls.set_margin_right(5)
+            if self._window is not None:
+                self._window.set_default_size(94, 28)
+                self._window.resize(94, 28)
+
+    def _apply_theme(self, theme) -> None:
+        self._theme = theme
+        self.config.save_theme(theme)
+        self._sync_title_visibility()
+        self._apply_css()
+
+    def open_settings(self) -> None:
+        if Gtk is None:
+            return
+        from .settings import SettingsDialog
+
+        dialog = SettingsDialog(self.config, self._theme, self._apply_theme)
+        dialog.run()
+
     def _apply_state(self, state) -> None:
         if self._title_label is None:
             return
@@ -181,7 +232,7 @@ class ControllerWindow:
         if availability == "CONNECTING":
             title = "Connecting…"
         elif availability == "UNAVAILABLE":
-            title = "Strawberry unavailable"
+            title = "No media player available"
         elif not title:
             title = "No track playing"
 
@@ -210,6 +261,10 @@ class ControllerWindow:
             position = self.config.load_position()
             if position:
                 self._window.move(*position)
+
+    def reset_size(self) -> None:
+        if self._window is not None:
+            self._window.resize(*self._effective_window_size())
 
     def run(self) -> None:
         if self._window is None:
