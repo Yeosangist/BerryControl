@@ -41,11 +41,18 @@ def is_mpris_service_name(service_name: str) -> bool:
     return service_name.startswith(MPRIS_SERVICE_PREFIX) and len(service_name) > len(MPRIS_SERVICE_PREFIX)
 
 
-def select_mpris_service(service_names: list[str], preferred: Optional[str] = None) -> Optional[str]:
-    """Select a stable MPRIS service, honoring an explicitly requested player."""
+def select_mpris_service(
+    service_names: list[str],
+    preferred: Optional[str] = None,
+    statuses: Optional[Mapping[str, Optional[str]]] = None,
+) -> Optional[str]:
+    """Select an active MPRIS service, honoring an explicitly requested player."""
     services = sorted(name for name in service_names if is_mpris_service_name(name))
     if preferred is not None:
         return preferred if preferred in services else None
+    if statuses:
+        status_rank = {"PLAYING": 0, "PAUSED": 1, "STOPPED": 2}
+        services.sort(key=lambda name: (status_rank.get(parse_playback_status(statuses.get(name)), 3), name))
     return services[0] if services else None
 
 
@@ -191,7 +198,33 @@ class MPRISController:
                 None,
             )
             names = result.unpack()[0]
-            return select_mpris_service(names, self._preferred_service_name)
+            services = [name for name in names if is_mpris_service_name(name)]
+            statuses = {}
+            for service_name in services:
+                try:
+                    proxy = Gio.DBusProxy.new_for_bus_sync(
+                        Gio.BusType.SESSION,
+                        Gio.DBusProxyFlags.NONE,
+                        None,
+                        service_name,
+                        self.object_path,
+                        "org.freedesktop.DBus.Properties",
+                        None,
+                    )
+                    properties = proxy.call_sync(
+                        "GetAll",
+                        GLib.Variant("(s)", ["org.mpris.MediaPlayer2.Player"]),
+                        0,
+                        -1,
+                        None,
+                    ).unpack()[0]
+                    playback_status = properties.get("PlaybackStatus")
+                    statuses[service_name] = (
+                        playback_status.unpack() if hasattr(playback_status, "unpack") else playback_status
+                    )
+                except Exception as exc:
+                    logger.debug("Unable to inspect MPRIS service %s: %s", service_name, exc)
+            return select_mpris_service(services, self._preferred_service_name, statuses)
         except Exception as exc:
             logger.debug("Unable to discover MPRIS services: %s", exc)
             return None
