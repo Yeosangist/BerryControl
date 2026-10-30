@@ -19,17 +19,19 @@ A small GTK/X11 controller for any MPRIS-compatible media player.
 ## Install
 Dependencies are X11, D-Bus, Python3.10+, PyGObject, GTK3, and AyatanaAppIndicator3.<br>
 
-To build the package:<br>
+To build the package:
 ```bash
 pyinstaller --name BerryControl --windowed --add-data "assets:assets" --noconfirm main.py
 ```
 <br>
-To install the desktop entry system-wide:<br>
+
+To install the desktop entry system-wide:
 ```bash
 sudo cp berrycontrol.desktop /usr/share/applications/
 ```
 <br>
-Or for user-only:<br>
+
+Or for user-only:
 ```bash
 cp berrycontrol.desktop ~/.local/share/applications/
 ```
