@@ -1,0 +1,17 @@
+[project]
+name = "BerryControl"
+version = "0.1.0"
+description = "Standalone GTK media controller for MPRIS players on X11"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "PyGObject>=3.48.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

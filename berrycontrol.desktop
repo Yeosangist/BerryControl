@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=BerryControl
+Version=1.0
+Comment=A small GTK/X11 controller for MPRIS media players.
+Type=Application
+Exec=berrycontrol
+Terminal=false
+Categories=Music;Audio;Utility
+StartupNotify=false

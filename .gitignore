@@ -1,0 +1,22 @@
+# Byte-compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+
+# PyInstaller
+*.spec
+*.manifest
+
+# Unit test
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+.env
